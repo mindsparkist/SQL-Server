@@ -1,3 +1,91 @@
+Sure! Here’s a quick and informative set of notes on **SQL Server Administration**, organized by key areas:
+
+---
+
+## **SQL Server Administration - Quick Notes**
+
+### **1. Installation & Configuration**
+- Use **SQL Server Installation Center** to install.
+- Choose **authentication mode**: Windows or Mixed Mode.
+- Configure **server collation**, file locations, and instance name (default or named).
+- Ensure **SQL Server Agent** is enabled for job scheduling.
+
+---
+
+### **2. SQL Server Services**
+- Key services:
+  - **SQL Server (MSSQLSERVER)** – Database engine
+  - **SQL Server Agent** – Automates jobs
+  - **SQL Server Browser** – Enables connections to named instances
+- Use **SQL Server Configuration Manager** to manage services and network protocols.
+
+---
+
+### **3. Database Management**
+- **Create Database**: GUI or `CREATE DATABASE` command.
+- **Backup Types**:
+  - Full: Entire DB
+  - Differential: Since last full
+  - Transaction Log: For point-in-time recovery
+- **Restore**: Use GUI or `RESTORE DATABASE`, include `WITH RECOVERY` or `NORECOVERY`.
+
+---
+
+### **4. Security Management**
+- Use **logins (server-level)** and **users (database-level)**.
+- **Roles**:
+  - Server Roles: sysadmin, securityadmin, etc.
+  - Database Roles: db_owner, db_datareader, etc.
+- **Principle of Least Privilege**: Grant only necessary permissions.
+
+---
+
+### **5. Maintenance & Monitoring**
+- **Maintenance Plans**:
+  - Rebuild indexes
+  - Update statistics
+  - Cleanup history
+- Use **SQL Server Agent Jobs** for automation.
+- **Monitoring Tools**:
+  - Activity Monitor
+  - Performance Monitor (PerfMon)
+  - Dynamic Management Views (DMVs) – e.g., `sys.dm_exec_requests`
+
+---
+
+### **6. Performance Tuning**
+- Check **slow queries** using execution plans.
+- Optimize **indexes** and avoid fragmentation.
+- Use **Query Store** for tracking performance history.
+- Monitor **wait statistics** for bottlenecks.
+
+---
+
+### **7. High Availability & Disaster Recovery**
+- **Always On Availability Groups** (Enterprise Edition).
+- **Log Shipping**: Periodic backup-copy-restore.
+- **Database Mirroring** (deprecated in newer versions).
+- **Replication**: Snapshot, Transactional, Merge.
+
+---
+
+### **8. Patching and Updates**
+- Apply **Cumulative Updates (CUs)** and **Service Packs (SPs)**.
+- Test updates in staging before applying in production.
+- Use **SQL Server Lifecycle** documentation to track support.
+
+---
+
+### **9. Tools & Utilities**
+- **SSMS (SQL Server Management Studio)** – GUI tool
+- **sqlcmd** – CLI for SQL Server
+- **bcp** – Bulk Copy Program for importing/exporting data
+- **Data-Tier Applications (DAC)** – Package DB schema and data
+
+---
+
+Let me know if you'd like deeper notes on any section or a printable version (PDF/Markdown).
+
 # SQL-Server
 
 **Write-Ahead Logging (WAL) Explained Simply**
