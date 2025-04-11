@@ -178,4 +178,126 @@ SQL Server services run under **specific accounts** with defined permissions:
 
 Let me know if you’d like this in a diagram, chart, or downloadable format (PDF/Markdown)!
 
+Perfect! Here’s a **complete and concise guide** that covers your latest points on **SQL Server administration**, all structured for quick reference and clarity.
+
+---
+
+## ⚙️ **SQL Server Configuration, Backup, Collation, and Unicode – Quick Admin Notes**
+
+---
+
+### 🛠️ **1. SQL Server Configuration Manager**
+- Tool used to:
+  - Manage **SQL Server services** (start/stop/restart).
+  - Configure **network protocols** (TCP/IP, Named Pipes).
+  - Set **port numbers**.
+  - Manage **service accounts** and **SSL certificates**.
+- Found under:  
+  **Start → SQL Server Tools → SQL Server Configuration Manager**
+
+---
+
+### 🚦 **2. SQL Server Services (Start/Stop)**
+- Manage from:
+  - **Configuration Manager**
+  - **Services.msc**
+  - **SQL Server Management Studio (SSMS)** → right-click on instance → **Start/Stop**
+- Important services:
+  - `SQL Server (InstanceName)`
+  - `SQL Server Agent`
+  - `SQL Server Browser`
+
+---
+
+### 🧩 **3. Installing SQL Server – Key Steps**
+1. Run **setup.exe**
+2. Choose **New SQL Server stand-alone installation**
+3. Enter product key → Accept license
+4. Run **rules check**
+5. Choose **instance type** (Default/Named)
+6. Select features (Engine, Agent, SSIS, SSRS, etc.)
+7. Configure:
+   - **Service accounts**
+   - **Collation**
+   - **Authentication mode** (Windows/Mixed)
+8. Set **data directories** and **TempDB settings**
+9. Complete installation → Verify via SSMS
+
+---
+
+### 💾 **4. Backing Up a Database – Steps**
+1. Open **SSMS**
+2. Right-click the database → **Tasks → Backup**
+3. Select:
+   - **Backup type**: Full / Differential / Transaction Log
+   - **Backup destination**: Disk / URL
+4. Click **OK** to start backup.
+
+💡 Use `BACKUP DATABASE [DBName] TO DISK = 'path\file.bak'` for T-SQL method.
+
+---
+
+### 🗃️ **5. What Is `archive.bak`?**
+- A **`.bak` file** is a **backup** of a SQL Server database.
+- `archive.bak` typically refers to:
+  - A **backup stored for archival** or compliance.
+  - Might be **offloaded from production** for long-term retention.
+- Can be restored using:
+  `RESTORE DATABASE [DBName] FROM DISK = 'path\archive.bak'`
+
+---
+
+### 🧭 **6. Configure Instance Properties**
+In SSMS:
+- Right-click server → **Properties** → configure:
+  - **Memory**:
+    - Set **min/max server memory**
+  - **Processor**:
+    - Option to **boost SQL Server priority**
+  - **Security**:
+    - Set **authentication mode**
+    - Enable **C2 audit tracing** (for strict security logging)
+  - **Advanced**:
+    - Set default file locations, etc.
+
+---
+
+### ⚙️ **7. Database Settings Overview**
+- Right-click database → **Properties**:
+  - **Files**:
+    - Shows data (`.mdf`, `.ndf`) and log (`.ldf`) file locations
+  - **Options**:
+    - Recovery model: Full / Simple / Bulk-logged
+  - **Autogrowth**:
+    - Control file growth size and max limit
+  - **Backup**:
+    - Default backup directory (can also be scripted)
+
+---
+
+### 🔤 **8. Collation and Unicode Support**
+
+#### 📚 **Collation**
+- **Defines rules** for:
+  - Character **sorting**
+  - **Case sensitivity** (CI/CS)
+  - **Accent sensitivity** (AI/AS)
+- Examples:
+  - `SQL_Latin1_General_CP1_CI_AS` → Case Insensitive, Accent Sensitive
+- Can be set at:
+  - **Instance level** (during install)
+  - **Database level**
+  - **Column level**
+- Use `SELECT DATABASEPROPERTYEX('DBName', 'Collation')` to check.
+
+#### 🌐 **Unicode Support**
+- Use **`N` prefix** for Unicode literals: e.g., `N'नमस्ते'`
+- Use **`nchar` / `nvarchar` / `ntext`** data types
+- Supports **multi-language text** storage
+- Unicode uses **2 bytes per character**, allows global characters
+
+---
+
+Let me know if you want this compiled as a PDF cheatsheet, or if you'd like flashcards or diagrams for easier learning!
+
 
