@@ -415,4 +415,557 @@ Let me know if you want:
 - Help troubleshooting errors (`ORA-`, provider issues, login failures, etc.)
 - A cheatsheet in Markdown or PDF format
 
+Here's a concise and informative set of notes on the next batch of SQL Server admin topics you've listed:
+
+---
+
+## 🧠 **SQL Server Engine, Configuration Manager, and Concurrency Control – Quick Notes**
+
+---
+
+### 🧩 **1. Database Engine Service Management**
+
+- **SQL Server Database Engine** is the core service that stores, processes, and secures data.
+- It runs under the **`MSSQLSERVER`** (default) or **`MSSQL$InstanceName`** (named instance).
+- Managed via:
+  - **SQL Server Configuration Manager**
+  - **Services.msc**
+  - **SQL Server Management Studio (SSMS)** → Right-click server → Start/Stop
+
+💡 **Key Actions**:
+- **Start/Stop/Restart**
+- Configure **service account** (for security & permissions)
+- Control via **command line**:
+  ```cmd
+  NET START MSSQLSERVER
+  NET STOP MSSQLSERVER
+  ```
+
+---
+
+### 🛠️ **2. SQL Server Configuration Manager**
+
+Used to manage:
+- **SQL Server services** (Engine, Agent, Browser)
+- **Service accounts** and their startup types
+- **Network configuration**:
+  - Enable/disable protocols like **TCP/IP**, **Named Pipes**
+  - Set **port numbers** (default TCP 1433)
+- **Aliases**: Map custom names to instances
+
+🗂️ **Path**:  
+**Start → SQL Server Tools → SQL Server Configuration Manager**
+
+💡 Use **Configuration Manager** instead of Services.msc to update service accounts correctly with necessary permissions.
+
+---
+
+### 🔒 **3. Locks, Blocking, and Deadlocks**
+
+#### ✅ **Locks**
+- SQL Server uses **locks** to ensure **data integrity** during concurrent operations.
+- Types:
+  - **Shared** (S): Read operations
+  - **Exclusive** (X): Write operations
+  - **Update** (U): Combo; escalates to Exclusive
+  - **Intent**: Hierarchical locking (on parent resources)
+  - **Schema/Key Range**: Internal operations
+
+#### 🛑 **Blocking**
+- Happens when:
+  - One transaction holds a **lock**, and another waits for it.
+- Not always bad—but **prolonged blocking = performance issue**
+- Monitor using:
+  ```sql
+  sp_who2
+  sys.dm_exec_requests
+  sys.dm_os_waiting_tasks
+  ```
+
+#### ❌ **Deadlocks**
+- Circular blocking—**two+ transactions wait on each other**, causing a cycle.
+- SQL Server **detects and kills one transaction** (called a **deadlock victim**).
+- Use:
+  - **SQL Profiler** or **Extended Events** to capture deadlocks
+  - Enable trace flag **1222** to log deadlock info:
+    ```sql
+    DBCC TRACEON (1222, -1)
+    ```
+
+📌 **Avoiding Deadlocks**:
+- Always **access tables in the same order**
+- Keep transactions **short**
+- Use **NOLOCK** or **READ COMMITTED SNAPSHOT** if appropriate
+- **Index tuning** to reduce scan locks
+
+---
+
+Let me know if you want:
+- Real-world examples of blocking/deadlocks
+- Scripts to analyze live locks and blocking sessions
+- Visual cheat sheets or diagrams to go with these concepts!
+
+Here's a **concise and clear set of SQL Server administration notes** covering your latest topics—from monitoring and auditing to permissions and logon triggers.
+
+---
+
+## 🔍 **SQL Server Monitoring, Security & Permissions – Admin Notes**
+
+---
+
+### 📈 **1. Monitoring SQL Server**
+
+Monitoring ensures performance, availability, and security.
+
+**Common tools**:
+- **Activity Monitor (SSMS)** – View live sessions, processes, waits.
+- **Performance Monitor (PerfMon)** – Track CPU, memory, I/O.
+- **Dynamic Management Views (DMVs)**:
+  - Example:  
+    ```sql
+    SELECT * FROM sys.dm_exec_requests
+    SELECT * FROM sys.dm_os_waiting_tasks
+    ```
+
+---
+
+### 📹 **2. SQL Server Profiler – Create a New Trace**
+
+**Profiler** captures real-time SQL activity for troubleshooting and tuning.
+
+🪜 **Steps**:
+1. Launch SQL Server Profiler.
+2. Click **File → New Trace**.
+3. Connect to SQL Server.
+4. Choose a **template** (e.g., Tuning, Standard).
+5. Select events:
+   - RPC Completed, SQL:BatchCompleted, Deadlock Graph, etc.
+6. Apply filters (e.g., login name, duration).
+7. Click **Run** to start trace.
+8. Save to a `.trc` file if needed.
+
+---
+
+### 📋 **3. Auditing in SQL Server**
+
+- Used to **track access, actions**, and **security-related events**.
+- **Server-level auditing**: Available in **all editions**.
+- **Database-level auditing**: Available in **Enterprise Edition only**.
+
+🪜 **Steps to Create a New Audit** (SSMS):
+1. Navigate to **Security → Audits** → Right-click → **New Audit**.
+2. Set **Audit name**, destination (file, Windows Event Log, etc.).
+3. Enable Audit.
+4. Create **Server Audit Specification**:
+   - Right-click **Server Audit Specifications** → **New...**
+   - Choose audit actions (e.g., `FAILED_LOGIN_GROUP`).
+5. Enable the specification.
+
+🔍 View logs:  
+Right-click Audit → **View Audit Logs**
+
+---
+
+### 🧮 **4. Resource Governor**
+
+Used to **control resource consumption** by workload groups.
+
+🧰 Key Concepts:
+- **Resource Pools**: CPU & memory limits.
+- **Workload Groups**: Classify sessions/users.
+- **Classifier Function**: T-SQL function that maps users to workload groups.
+
+🪜 **Steps to Enable**:
+1. Enable Resource Governor:
+   ```sql
+   ALTER RESOURCE GOVERNOR RECONFIGURE
+   ```
+2. Create pools & groups.
+3. Create classifier function.
+4. Apply classifier:
+   ```sql
+   ALTER RESOURCE GOVERNOR WITH (CLASSIFIER_FUNCTION = dbo.MyClassifier)
+   ```
+5. Reconfigure.
+
+---
+
+### 🧑‍🤝‍🧑 **5. Manage Server-Level Roles**
+
+- Server roles manage **instance-wide** permissions.
+
+**Fixed Server Roles**:
+| Role         | Description |
+|--------------|-------------|
+| `sysadmin`   | Full access to everything |
+| `serveradmin` | Server settings (start/stop) |
+| `securityadmin` | Manage logins/permissions |
+| `dbcreator` | Create, alter, drop databases |
+| `bulkadmin` | Run BULK INSERT |
+| `diskadmin` | Manage disk files |
+| `processadmin` | Manage processes |
+
+**Note**: All users are **part of the `public` role** by default.
+
+---
+
+### 🔐 **6. Manage Server Logins**
+
+- Found under **Security → Logins** in SSMS.
+- Logins map to:
+  - **Windows Users**
+  - **SQL Server-authenticated users**
+- Permissions can be granted at **server** or **database level**.
+
+Create login via T-SQL:
+```sql
+CREATE LOGIN TestUser WITH PASSWORD = 'Test@123'
+```
+
+---
+
+### 👥 **7. Manage Database Users & Roles**
+
+- After login is created, map it to a database user:
+  ```sql
+  USE MyDB;
+  CREATE USER TestUser FOR LOGIN TestUser;
+  ```
+
+**Database Roles**:
+- `db_owner`, `db_datareader`, `db_datawriter`, etc.
+- Custom roles can be created:
+  ```sql
+  CREATE ROLE reporting_team
+  GRANT SELECT ON dbo.Orders TO reporting_team
+  ```
+
+---
+
+### 🔏 **8. Implement Server Permissions**
+
+Use `GRANT`, `DENY`, `REVOKE` at the **server level**:
+```sql
+GRANT ALTER ANY LOGIN TO TestUser
+DENY VIEW ANY DATABASE TO TestUser
+```
+
+---
+
+### 🔔 **9. Logon Triggers**
+
+- Special **DDL triggers** that fire **on user login**.
+
+Use cases:
+- Restrict logons based on time/IP/user.
+- Audit logins or send alerts.
+- Prevent too many sessions.
+
+🧪 **Example**:
+```sql
+CREATE TRIGGER trg_LimitLogins
+ON ALL SERVER
+FOR LOGON
+AS
+BEGIN
+   IF ORIGINAL_LOGIN() = 'TempUser'
+      AND (SELECT COUNT(*) FROM sys.dm_exec_sessions WHERE is_user_process = 1 AND original_login_name = 'TempUser') > 3
+   ROLLBACK;
+END
+```
+
+⚠️ Use carefully – incorrect logic can **lock you out**.
+
+---
+
+Let me know if you’d like a downloadable cheat sheet, practice lab, or visual flowcharts for any of these sections!
+
+Here's a clean and practical set of notes on **Managing Data in SQL Server**, including backup types, restore methods, and database file movement.
+
+---
+
+## 💽 **Managing Data in SQL Server – Backup, Restore, and File Management**
+
+---
+
+### 📦 **1. Backup & Restore Overview**
+
+- SQL Server provides **robust backup/restore** mechanisms for data protection.
+- Backups can be stored on **disk, tape, or cloud**.
+- Use **SSMS** or **T-SQL** for operations.
+
+---
+
+### 🔁 **2. Types of Backups (SQL Server 2016)**
+
+| Backup Type       | Description |
+|-------------------|-------------|
+| **Full**          | Backs up the entire database including data and objects |
+| **Differential**  | Backs up changes since the **last full backup** |
+| **Transaction Log** | Captures changes since the **last log backup** (requires full recovery model) |
+| **Copy-Only**     | Special full backup that doesn't affect backup chain |
+| **File/Filegroup**| Backs up specific data files or filegroups |
+| **Partial**       | For read-only filegroups (enterprise use)
+
+---
+
+### 💾 **3. T-SQL: Taking a Backup**
+
+```sql
+-- Full backup
+BACKUP DATABASE MyDB
+TO DISK = 'D:\Backups\MyDB_full.bak'
+WITH FORMAT, INIT;
+
+-- Differential backup
+BACKUP DATABASE MyDB
+TO DISK = 'D:\Backups\MyDB_diff.bak'
+WITH DIFFERENTIAL;
+
+-- Log backup
+BACKUP LOG MyDB
+TO DISK = 'D:\Backups\MyDB_log.trn';
+```
+
+---
+
+### 📂 **4. Moving Backup Files**
+
+1. **Backup the DB** using SSMS or T-SQL (see above).
+2. Navigate to backup directory.
+3. Move `.bak` file(s) to the desired location (e.g., external drive or `MSSQL\Backup\`).
+
+📝 Tip: Always **validate** file permissions at destination for SQL Server service account.
+
+---
+
+### 🔧 **5. Moving Database Data/Log Files (Detach & Attach)**
+
+#### 🪜 **Steps**:
+1. In SSMS:  
+   Right-click database → Tasks → Detach
+
+   Or via T-SQL:
+   ```sql
+   USE master;
+   ALTER DATABASE MyDB SET OFFLINE WITH ROLLBACK IMMEDIATE;
+   EXEC sp_detach_db 'MyDB';
+   ```
+
+2. **Move files** (`.mdf` and `.ldf`) from old location to:
+   ```
+   C:\Program Files\Microsoft SQL Server\MSSQLXX.InstanceName\MSSQL\Data\
+   ```
+
+3. Re-attach the database:
+   ```sql
+   CREATE DATABASE MyDB
+   ON 
+   (FILENAME = 'C:\Path\To\MyDB.mdf'),
+   (FILENAME = 'C:\Path\To\MyDB_log.ldf')
+   FOR ATTACH;
+   ```
+
+Or via SSMS:  
+Right-click **Databases** → **Attach**
+
+---
+
+### 🔄 **6. Restoring from Backup**
+
+```sql
+-- Restore from full backup
+RESTORE DATABASE MyDB
+FROM DISK = 'D:\Backups\MyDB_full.bak'
+WITH MOVE 'MyDB_Data' TO 'C:\Data\MyDB.mdf',
+     MOVE 'MyDB_Log' TO 'C:\Data\MyDB_log.ldf',
+     REPLACE;
+```
+
+---
+
+Let me know if you’d like:
+- A backup/restore **flow diagram**
+- Sample **scripts for scheduled backups**
+- Practice lab instructions or PDF version of these notes!
+
+Here's a **quick and practical guide** on **ensuring data integrity** in SQL Server with a focus on **unique IDs** and **indexing**.
+
+---
+
+## ✅ **Ensuring Data Integrity in SQL Server**
+
+---
+
+### 🆔 **1. Enforcing Unique IDs**
+
+To ensure **no duplicate data** (e.g., same ID in a table), use:
+
+#### 🔹 **Primary Key**
+- Automatically ensures uniqueness and NOT NULL.
+```sql
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name NVARCHAR(100)
+);
+```
+
+#### 🔹 **Unique Constraint**
+- Enforces uniqueness on columns that aren’t primary keys.
+```sql
+ALTER TABLE Employees
+ADD CONSTRAINT UQ_Email UNIQUE (Email);
+```
+
+💡 *Use when you want multiple unique columns (e.g., `Email`, `Username`).*
+
+---
+
+### 📊 **2. Indexing Every Table**
+
+Indexes **improve performance** and can also **enforce constraints**.
+
+#### 🔹 **Clustered Index**
+- Defines the **physical order** of data.
+- Only **one per table**, usually on **Primary Key**.
+```sql
+CREATE CLUSTERED INDEX IX_Employees_ID
+ON Employees (EmployeeID);
+```
+
+#### 🔹 **Non-Clustered Index**
+- Useful for **frequently queried columns** (e.g., `Email`, `Name`).
+```sql
+CREATE NONCLUSTERED INDEX IX_Employees_Email
+ON Employees (Email);
+```
+
+💡 Best Practices:
+- Every table **should have at least one index** (typically the Primary Key).
+- Avoid too many indexes—they affect **INSERT/UPDATE performance**.
+
+---
+
+### 🛑 Extra Integrity Tips
+
+- **FOREIGN KEY Constraints** – To maintain referential integrity:
+```sql
+ALTER TABLE Orders
+ADD CONSTRAINT FK_Orders_Employees
+FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID);
+```
+
+- **CHECK Constraints** – Validate specific rules (e.g., Age > 0).
+```sql
+ALTER TABLE Employees
+ADD CONSTRAINT CK_Age CHECK (Age > 0);
+```
+
+- **NOT NULL** – Prevents nulls in important fields.
+- **Triggers** – Advanced rules or auditing (use carefully).
+
+---
+
+Let me know if you want a checklist or a SQL script to validate integrity across all tables!
+
+Here’s a **quick overview** of **High Availability (HA)** options in SQL Server, focusing on **Replication**, **Log Shipping**, **Database Mirroring**, and **Always On**:
+
+---
+
+## 🔒 **High Availability Options in SQL Server**
+
+---
+
+### 1. **Database Replication**
+Replication allows **data distribution** across multiple servers and is used for **high availability** and **scalability**.
+
+**Types of Replication**:
+- **Transactional Replication**: Changes made to the data on the publisher are immediately reflected on subscribers. Suitable for high-frequency data change scenarios.
+- **Merge Replication**: Both publisher and subscribers can update data, and changes are merged. Ideal for distributed applications.
+- **Snapshot Replication**: Distributes the entire data at scheduled intervals. Best for small data or infrequently changing data.
+
+#### Steps for Setup:
+1. **Configure Publisher**: Choose your database to publish.
+2. **Configure Distributor**: A server to manage replication.
+3. **Configure Subscriber**: A server that will receive the replicated data.
+
+---
+
+### 2. **Log Shipping**
+Log shipping involves **automating the process** of sending transaction logs from a **primary database** to one or more **secondary databases**. This provides **disaster recovery** and **high availability**.
+
+#### Key Concepts:
+- **Primary Server**: Where the database is hosted.
+- **Secondary Server(s)**: Servers receiving the transaction logs.
+- **Transaction Log Backups**: Periodically backed up and shipped to secondary servers.
+- **Restore Frequency**: Logs are restored to the secondary server at regular intervals.
+
+#### Steps for Setup:
+1. Configure **Backup Jobs** on the primary server.
+2. Configure **Copy Jobs** to move the logs to the secondary server.
+3. Configure **Restore Jobs** to apply the transaction logs to the secondary server.
+
+---
+
+### 3. **Database Mirroring**
+Database mirroring maintains an **exact copy** of a database on another server for **high availability**.
+
+#### Key Concepts:
+- **Principal Server**: The primary database where all operations occur.
+- **Mirror Server**: A secondary copy of the database.
+- **Witness Server**: Optional server used for automatic failover (in High Safety mode).
+
+#### Mirroring Modes:
+- **High Safety** (synchronous): Data is written to both servers simultaneously. Failover is automatic if a witness is present.
+- **High Performance** (asynchronous): Data is written to the principal and then sent to the mirror server.
+- **High Availability**: Combines the best of both High Safety and High Performance.
+
+#### Steps for Setup:
+1. Create and restore a full backup of the database on the mirror server.
+2. Set up database mirroring between the principal and mirror server using T-SQL or SSMS.
+
+```sql
+ALTER DATABASE MyDB
+SET PARTNER = 'TCP://mirrorserver:5022';
+```
+
+---
+
+### 4. **Always On Availability Groups**
+**Always On** is SQL Server's most advanced HA feature, offering **automatic failover**, **readable secondary replicas**, and **data protection** across multiple servers. It requires **Enterprise Edition**.
+
+#### Key Concepts:
+- **Primary Replica**: Active database.
+- **Secondary Replicas**: Readable replicas for offloading read-only workloads.
+- **Availability Group**: A group of databases that fail over together.
+- **Automatic Failover**: In the event of a failure, the secondary replica takes over as primary automatically.
+- **Synchronous/Asynchronous**: Data can be synchronously (High Availability) or asynchronously (disaster recovery) mirrored.
+
+#### Steps for Setup:
+1. **Create Availability Group**: Choose databases to be part of the group.
+2. Configure **Replicas** (Primary and Secondary).
+3. **Listener**: Configure a listener to provide a single virtual IP for clients to connect to the primary replica.
+
+```sql
+-- Example to join secondary replica to availability group
+ALTER AVAILABILITY GROUP MyAG
+ADD REPLICA ON 'SecondaryReplicaServer'
+WITH (ENDPOINT_URL = 'TCP://SecondaryReplicaServer:5022');
+```
+
+---
+
+### 🔑 **Summary Comparison**:
+
+| Feature             | Replication         | Log Shipping       | Database Mirroring  | Always On           |
+|---------------------|---------------------|--------------------|---------------------|---------------------|
+| **Failover**         | No automatic failover | Manual failover    | Automatic (with witness) | Automatic failover (with synchronous) |
+| **Data Consistency** | Distributed/Read-only copies | Asynchronous (data lag) | Synchronous or Asynchronous | Synchronous/Asynchronous |
+| **Supported Editions** | All editions       | All editions       | Enterprise only     | Enterprise only     |
+| **Use Case**         | Scaling and distribution | Disaster Recovery | High Availability    | High Availability with read replicas |
+
+---
+
+Let me know if you need **step-by-step instructions** for setting up any of these high availability options or need more advanced details!
+
 
